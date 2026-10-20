@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Checklist Penampilan Driver</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#10282A;--g:#0F3D3E;--g2:#E3EEEB;--bg:#F4F6F4;--card:#fff;--line:#DCE3E0;--mut:#5E7270;--ok:#1E8E5A;--okbg:#E2F4EA;--bad:#C8372D;--badbg:#FBE7E4;--warn:#F26B1D;--warnbg:#FFF0E4}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:96px}
+header{background:var(--g);color:#fff;padding:18px 16px 16px;position:sticky;top:0;z-index:5}
+header h1{font-size:18px;margin:0;font-weight:800}
+header p{margin:2px 0 0;font-size:12.5px;opacity:.8}
+.bar{height:5px;background:rgba(255,255,255,.2);border-radius:9px;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--warn);transition:width .25s}
+main{max-width:560px;margin:0 auto;padding:12px 14px}
+h2{font-size:14px;margin:18px 2px 8px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin:12px 0 5px}
+label:first-child{margin-top:0}
+input,select,textarea{width:100%;font:inherit;font-size:15px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{padding:12px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0;padding-top:0}
+.item p{margin:0 0 8px;font-size:14px;line-height:1.4}
+.item p b{color:var(--mut);font-weight:700;margin-right:6px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg.s3{grid-template-columns:repeat(3,1fr)}
+.seg button{font:inherit;font-size:14px;font-weight:700;padding:12px 6px;border:1.5px solid var(--line);background:#fff;border-radius:10px;color:var(--mut)}
+.seg button.on.y{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+.seg button.on.n{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
+.seg button.on.w{background:var(--warnbg);border-color:var(--warn);color:#B8470A}
+.seg button.on.g{background:var(--g2);border-color:var(--g);color:var(--g)}
+#kel{display:none}
+.photo{border:2px dashed var(--line);border-radius:12px;min-height:150px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mut);font-size:13.5px;overflow:hidden;background:#FAFBFA}
+.photo img{width:100%;display:none;max-height:300px;object-fit:cover}
+.foot{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px))}
+.foot button{display:block;max-width:560px;margin:0 auto;width:100%;font:inherit;font-weight:800;font-size:16px;padding:15px;border:0;border-radius:12px;background:var(--g);color:#fff}
+.foot button:disabled{opacity:.6}
+#toast{position:fixed;left:14px;right:14px;top:14px;z-index:30;padding:13px 15px;border-radius:12px;font-weight:600;font-size:14px;display:none;color:#fff;max-width:560px;margin:auto}
+#res{display:none;margin-bottom:12px;padding:14px;border-radius:14px;font-size:14px;line-height:1.45}
+#res b{display:block;font-size:16px;margin-bottom:2px}
+#cam{position:fixed;inset:0;background:#000;z-index:40;display:none;flex-direction:column}
+#cam video{flex:1;width:100%;min-height:0;object-fit:cover}
+#cam .cb{display:flex;justify-content:space-around;align-items:center;padding:18px 0 calc(18px + env(safe-area-inset-bottom,0px));background:#000}
+#cam .shot{width:68px;height:68px;border-radius:50%;border:5px solid #fff;background:#ffffff40}
+#cam .x{background:none;border:0;color:#fff;font:inherit;font-size:15px;width:68px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Checklist Penampilan Driver</h1>
+  <p id="tgl"></p>
+  <div class="bar"><i id="prog"></i></div>
+</header>
+<div id="toast"></div>
+<main>
+  <div id="res"></div>
+
+  <h2>Identitas</h2>
+  <div class="card">
+    <label>Tanggal</label><input type="date" id="tanggal">
+    <label>NIK</label><input id="nik" inputmode="numeric" autocomplete="off" placeholder="Nomor induk karyawan">
+    <label>Nama Driver</label><input id="nama" autocomplete="off" oninput="this.value=this.value.toUpperCase()">
+    <div class="g2">
+      <div><label>BU</label><input id="bu" autocomplete="off" oninput="this.value=this.value.toUpperCase()"></div>
+      <div><label>Site/DC</label><input id="site" autocomplete="off" oninput="this.value=this.value.toUpperCase()"></div>
+    </div>
+    <label>Shift/Aktivitas</label>
+    <input id="shift" list="shifts" placeholder="Pilih atau ketik">
+    <datalist id="shifts"><option value="Shift 1"><option value="Shift 2"><option value="Shift 3"><option value="Non Shift"><option value="Pengiriman"><option value="Pickup"></datalist>
+  </div>
+
+  <h2>Kondisi kesehatan hari ini</h2>
+  <div class="card">
+    <div class="seg s3" id="kond"></div>
+    <div id="kel"><label>Keluhan yang dirasakan</label><textarea id="keluhan" rows="2" placeholder="Contoh: demam, pusing, batuk"></textarea></div>
+    <label>Istirahat semalam</label>
+    <div class="seg" id="ist"></div>
+  </div>
+
+  <h2>Standar penampilan</h2>
+  <div class="card" id="items"></div>
+
+  <h2>Foto penampilan</h2>
+  <div class="card">
+    <div class="photo" id="pbox" onclick="openCam()"><img id="pimg"><span id="ptxt">Ketuk untuk foto selfie<br>(wajah &amp; seragam terlihat)</span></div>
+    <input type="file" id="pfile" accept="image/*" capture="user" hidden>
+  </div>
+</main>
+<div class="foot"><button id="btn" onclick="submitForm()">Kirim Checklist</button></div>
+
+<div id="cam">
+  <video id="vid" playsinline muted></video>
+  <div class="cb"><button class="x" onclick="closeCam()">Batal</button><button class="shot" onclick="shoot()" aria-label="Ambil foto"></button><span style="width:68px"></span></div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzj_2isLYK9oDalqxfxeyiGnrBkxjfFvfQExyW7Y3M7bHI1sVTd3QUFrFs7z7W2kcvoNg/exec';
+const ITEMS = [
+ 'Rambut pendek, rapi & warna natural',
+ 'Rambut tidak menutupi telinga / tidak melewati batas kerah',
+ 'Rambut fresh/wet looking & menggunakan hair cream bila diperlukan',
+ 'Tidak berbulu hidung & telinga',
+ 'Tidak berkumis, berjenggot & berjambang',
+ 'Wajah bersih, sehat & tidak berminyak',
+ 'Seragam rapi & bersih',
+ 'Menggunakan name tag di dada kiri',
+ 'Celana panjang berbahan katun hitam',
+ 'Ikat pinggang warna hitam/gelap',
+ 'Sepatu tertutup/formal warna hitam'
+];
+const $ = id => document.getElementById(id);
+const ans = Array(ITEMS.length).fill(null);
+let kondisi = null, istirahat = null, foto = null;
+
+function seg(el, opts, cb){
+  el.innerHTML = '';
+  opts.forEach(o => {
+    const b = document.createElement('button'); b.type='button'; b.textContent = o.t;
+    b.onclick = () => { [...el.children].forEach(x => x.className=''); b.className = 'on ' + o.c; cb(o.v); progress(); };
+    el.appendChild(b);
+  });
+}
+ITEMS.forEach((t, i) => {
+  const d = document.createElement('div'); d.className = 'item';
+  d.innerHTML = `<p><b>${i+1}.</b>${t}</p><div class="seg" id="it${i}"></div>`;
+  $('items').appendChild(d);
+  seg($('it'+i), [{t:'Sesuai',v:'Y',c:'y'},{t:'Tidak sesuai',v:'T',c:'n'}], v => ans[i] = v);
+});
+seg($('kond'), [{t:'Sehat',v:'Sehat',c:'y'},{t:'Kurang Fit',v:'Kurang Fit',c:'w'},{t:'Sakit',v:'Sakit',c:'n'}],
+  v => { kondisi = v; $('kel').style.display = v === 'Sehat' ? 'none' : 'block'; });
+seg($('ist'), [{t:'Cukup (≥ 6 jam)',v:'Cukup',c:'g'},{t:'Kurang',v:'Kurang',c:'w'}], v => istirahat = v);
+
+function progress(){
+  const n = ans.filter(Boolean).length + (kondisi?1:0) + (istirahat?1:0) + (foto?1:0);
+  $('prog').style.width = (n / (ITEMS.length + 3) * 100) + '%';
+}
+function toast(m, type){
+  const t = $('toast'); t.textContent = m; t.style.background = type === 'ok' ? '#1E8E5A' : '#C8372D'; t.style.display = 'block';
+  clearTimeout(t._t); t._t = setTimeout(() => t.style.display = 'none', 3500);
+}
+function evaluate(k, tidak){
+  if (k === 'Sakit') return ['Tidak Layak Bertugas','bad'];
+  if (tidak >= 3 || (k === 'Kurang Fit' && tidak > 0)) return ['Perlu Ditindak','bad'];
+  if (tidak >= 1 || k === 'Kurang Fit') return ['Perlu Perhatian','warn'];
+  return ['Layak','ok'];
+}
+
+// ---- Tanggal & identitas tersimpan di HP ----
+const today = new Date(Date.now() - new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+$('tanggal').value = today;
+$('tgl').textContent = new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const KEEP = ['nik','nama','bu','site','shift'];
+try { KEEP.forEach(k => { const v = localStorage.getItem('drv_'+k); if (v) $(k).value = v; }); } catch(e){}
+
+// ---- Foto: kamera di dalam halaman ----
+let stream = null, camReady = false;
+function openCam(){
+  if (!(window.isSecureContext && navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return $('pfile').click();
+  $('cam').style.display = 'flex'; camReady = false;
+  const to = new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 6000));
+  Promise.race([navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'user'}}, audio:false}), to])
+    .then(s => { stream = s; $('vid').srcObject = s; return $('vid').play(); })
+    .then(() => camReady = true)
+    .catch(() => { closeCam(); $('pfile').click(); });
+}
+function closeCam(){
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null; $('vid').srcObject = null; $('cam').style.display = 'none';
+}
+function setPhoto(url){ foto = url; $('pimg').src = url; $('pimg').style.display = 'block'; $('ptxt').style.display = 'none'; progress(); }
+function shoot(){
+  const v = $('vid');
+  if (!camReady || v.readyState < 2) return toast('Kamera masih memuat, tunggu sebentar', 'bad');
+  try {
+    const w = Math.min(v.videoWidth, 640), h = v.videoHeight * (w / v.videoWidth);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').drawImage(v, 0, 0, w, h);
+    setPhoto(c.toDataURL('image/jpeg', .5));
+  } catch(e){ toast('Gagal mengambil foto, coba lagi', 'bad'); }
+  closeCam();
+}
+$('pfile').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => { const im = new Image(); im.onload = () => {
+    const w = Math.min(im.width, 640), h = im.height * (w / im.width);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').drawImage(im, 0, 0, w, h); setPhoto(c.toDataURL('image/jpeg', .5));
+  }; im.src = ev.target.result; };
+  r.readAsDataURL(f);
+};
+
+// ---- Kirim ----
+async function submitForm(){
+  const v = k => $(k).value.trim();
+  if (!v('tanggal') || !v('nik') || !v('nama') || !v('bu') || !v('site') || !v('shift')) return toast('Lengkapi data identitas', 'bad');
+  if (!kondisi) return toast('Pilih kondisi kesehatan', 'bad');
+  if (kondisi !== 'Sehat' && !v('keluhan')) return toast('Isi keluhan yang dirasakan', 'bad');
+  if (!istirahat) return toast('Pilih lama istirahat', 'bad');
+  const kosong = ans.findIndex(a => !a);
+  if (kosong > -1){ toast('Checklist no. ' + (kosong+1) + ' belum diisi', 'bad'); $('it'+kosong).scrollIntoView({block:'center',behavior:'smooth'}); return; }
+  if (!foto) return toast('Ambil foto penampilan', 'bad');
+  if (SCRIPT_URL.indexOf('GANTI') === 0) return toast('URL Web App belum dipasang di index.html', 'bad');
+
+  const btn = $('btn'); btn.disabled = true; btn.textContent = 'Mengirim…';
+  const tidak = ans.filter(a => a === 'T').length;
+  const payload = { tanggal:v('tanggal'), nik:v('nik'), nama:v('nama'), bu:v('bu'), site:v('site'), shift:v('shift'),
+    kondisi, keluhan: kondisi === 'Sehat' ? '' : v('keluhan'), istirahat, c:ans, foto };
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 25000);
+  try {
+    await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload), signal:ctl.signal});
+    clearTimeout(tm);
+    try { KEEP.forEach(k => localStorage.setItem('drv_'+k, v(k))); } catch(e){}
+    const [st, cls] = evaluate(kondisi, tidak);
+    const r = $('res');
+    r.style.display = 'block';
+    r.style.background = cls === 'ok' ? 'var(--okbg)' : cls === 'warn' ? 'var(--warnbg)' : 'var(--badbg)';
+    r.innerHTML = `<b>Terkirim: ${st}</b>` + (tidak ? `${tidak} poin penampilan belum sesuai. Perbaiki sebelum bertugas.` : 'Semua poin penampilan sesuai.') +
+      (kondisi === 'Sakit' ? '<br>Laporkan kondisi Anda ke atasan sebelum bertugas.' : '');
+    ans.fill(null); kondisi = istirahat = foto = null;
+    document.querySelectorAll('.seg button').forEach(b => b.className = '');
+    $('kel').style.display = 'none'; $('keluhan').value = ''; $('pimg').style.display = 'none'; $('ptxt').style.display = 'block';
+    progress(); scrollTo({top:0, behavior:'smooth'});
+  } catch(err){
+    toast(err.name === 'AbortError' ? 'Koneksi lambat. Coba kirim lagi' : 'Gagal mengirim. Cek koneksi internet', 'bad');
+  } finally { clearTimeout(tm); btn.disabled = false; btn.textContent = 'Kirim Checklist'; }
+}
+</script>
+</body>
+</html>
