@@ -20,6 +20,11 @@ h2{font-size:14px;margin:18px 2px 8px;font-weight:700}
 label{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin:12px 0 5px}
 label:first-child{margin-top:0}
 input,select,textarea{width:100%;font:inherit;font-size:15px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+input[readonly]{background:#EEF3F1;color:var(--g);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{flex:1 1 28%;font:inherit;font-size:14px;font-weight:700;padding:12px 8px;border:1.5px solid var(--line);background:#fff;border-radius:10px;color:var(--mut)}
+.chips button.on{background:var(--g2);border-color:var(--g);color:var(--g)}
+#nikst{font-size:12.5px;margin-top:5px;min-height:16px;font-weight:600}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .item{padding:12px 0;border-top:1px solid var(--line)}
@@ -62,15 +67,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g)}
   <h2>Identitas</h2>
   <div class="card">
     <label>Tanggal</label><input type="date" id="tanggal">
-    <label>NIK</label><input id="nik" inputmode="numeric" autocomplete="off" placeholder="Nomor induk karyawan">
+    <label>NIK</label><input id="nik" inputmode="numeric" autocomplete="off" placeholder="Nomor induk karyawan" oninput="cekNik()"><div id="nikst"></div>
     <label>Nama Driver</label><input id="nama" autocomplete="off" oninput="this.value=this.value.toUpperCase()">
     <div class="g2">
       <div><label>BU</label><input id="bu" autocomplete="off" oninput="this.value=this.value.toUpperCase()"></div>
       <div><label>Site/DC</label><input id="site" autocomplete="off" oninput="this.value=this.value.toUpperCase()"></div>
     </div>
     <label>Shift/Aktivitas</label>
-    <input id="shift" list="shifts" placeholder="Pilih atau ketik">
-    <datalist id="shifts"><option value="Shift 1"><option value="Shift 2"><option value="Shift 3"><option value="Non Shift"><option value="Pengiriman"><option value="Pickup"></datalist>
+    <div class="chips" id="shiftc"></div>
   </div>
 
   <h2>Kondisi kesehatan hari ini</h2>
@@ -114,7 +118,7 @@ const ITEMS = [
 ];
 const $ = id => document.getElementById(id);
 const ans = Array(ITEMS.length).fill(null);
-let kondisi = null, istirahat = null, foto = null;
+let kondisi = null, istirahat = null, foto = null, shiftVal = null, MASTER = [], auto = false;
 
 function seg(el, opts, cb){
   el.innerHTML = '';
@@ -133,6 +137,34 @@ ITEMS.forEach((t, i) => {
 seg($('kond'), [{t:'Sehat',v:'Sehat',c:'y'},{t:'Kurang Fit',v:'Kurang Fit',c:'w'},{t:'Sakit',v:'Sakit',c:'n'}],
   v => { kondisi = v; $('kel').style.display = v === 'Sehat' ? 'none' : 'block'; });
 seg($('ist'), [{t:'Cukup (≥ 6 jam)',v:'Cukup',c:'g'},{t:'Kurang',v:'Kurang',c:'w'}], v => istirahat = v);
+
+seg($('shiftc'), ['Shift 1','Shift 2','Shift 3','Non Shift','Pengiriman','Pickup'].map(t => ({t, v:t, c:''})), v => shiftVal = v);
+try { const sv = localStorage.getItem('drv_shift'); const b = [...$('shiftc').children].find(x => x.textContent === sv); if (b) b.click(); } catch(e){}
+
+// ---- Isi otomatis dari master driver ----
+function cekNik(){
+  const n = $('nik').value.trim(), m = MASTER.find(x => x.nik === n), st = $('nikst');
+  if (m){
+    $('nama').value = m.nama; $('bu').value = m.bu; $('site').value = m.site; auto = true;
+    ['nama','bu','site'].forEach(k => $(k).readOnly = true);
+    st.textContent = '✓ Terdaftar: ' + m.nama; st.style.color = 'var(--ok)';
+  } else {
+    if (auto){ ['nama','bu','site'].forEach(k => $(k).value = ''); auto = false; }
+    ['nama','bu','site'].forEach(k => $(k).readOnly = false);
+    if (n.length >= 4 && MASTER.length){ st.textContent = 'NIK tidak ada di daftar. Periksa lagi, atau isi data manual.'; st.style.color = 'var(--warn)'; }
+    else { st.textContent = n && !MASTER.length ? 'Daftar driver belum termuat, isi data manual.' : ''; st.style.color = 'var(--mut)'; }
+  }
+}
+function loadMaster(){
+  if (SCRIPT_URL.indexOf('GANTI') === 0) return;
+  const cb = 'mcb' + Date.now(), sc = document.createElement('script');
+  window[cb] = d => { if (Array.isArray(d)) MASTER = d; delete window[cb]; sc.remove(); cekNik(); };
+  sc.src = SCRIPT_URL + '?action=master&callback=' + cb;
+  sc.onerror = () => sc.remove();
+  document.head.appendChild(sc);
+  setTimeout(() => { delete window[cb]; sc.remove(); }, 15000);
+}
+loadMaster();
 
 function progress(){
   const n = ans.filter(Boolean).length + (kondisi?1:0) + (istirahat?1:0) + (foto?1:0);
@@ -153,7 +185,7 @@ function evaluate(k, tidak){
 const today = new Date(Date.now() - new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
 $('tanggal').value = today;
 $('tgl').textContent = new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-const KEEP = ['nik','nama','bu','site','shift'];
+const KEEP = ['nik','nama','bu','site'];
 try { KEEP.forEach(k => { const v = localStorage.getItem('drv_'+k); if (v) $(k).value = v; }); } catch(e){}
 
 // ---- Foto: kamera di dalam halaman ----
@@ -197,7 +229,7 @@ $('pfile').onchange = e => {
 // ---- Kirim ----
 async function submitForm(){
   const v = k => $(k).value.trim();
-  if (!v('tanggal') || !v('nik') || !v('nama') || !v('bu') || !v('site') || !v('shift')) return toast('Lengkapi data identitas', 'bad');
+  if (!v('tanggal') || !v('nik') || !v('nama') || !v('bu') || !v('site') || !shiftVal) return toast('Lengkapi data identitas', 'bad');
   if (!kondisi) return toast('Pilih kondisi kesehatan', 'bad');
   if (kondisi !== 'Sehat' && !v('keluhan')) return toast('Isi keluhan yang dirasakan', 'bad');
   if (!istirahat) return toast('Pilih lama istirahat', 'bad');
@@ -208,13 +240,13 @@ async function submitForm(){
 
   const btn = $('btn'); btn.disabled = true; btn.textContent = 'Mengirim…';
   const tidak = ans.filter(a => a === 'T').length;
-  const payload = { tanggal:v('tanggal'), nik:v('nik'), nama:v('nama'), bu:v('bu'), site:v('site'), shift:v('shift'),
+  const payload = { tanggal:v('tanggal'), nik:v('nik'), nama:v('nama'), bu:v('bu'), site:v('site'), shift:shiftVal,
     kondisi, keluhan: kondisi === 'Sehat' ? '' : v('keluhan'), istirahat, c:ans, foto };
   const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 25000);
   try {
     await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload), signal:ctl.signal});
     clearTimeout(tm);
-    try { KEEP.forEach(k => localStorage.setItem('drv_'+k, v(k))); } catch(e){}
+    try { KEEP.forEach(k => localStorage.setItem('drv_'+k, v(k))); localStorage.setItem('drv_shift', shiftVal); } catch(e){}
     const [st, cls] = evaluate(kondisi, tidak);
     const r = $('res');
     r.style.display = 'block';
