@@ -5,8 +5,7 @@ Data masuk ke Google Sheet, foto ke Google Drive. Hosting gratis lewat GitHub Pa
 
 | File | Fungsi |
 |---|---|
-| `index.html` | Form harian driver (identitas, kesehatan, 11 poin penampilan, foto selfie) |
-| `dashboard.html` | Monitoring, filter, driver berulang, tindak lanjut (butuh PIN admin) |
+| `index.html` | Satu halaman, dua menu: **Isi Checklist** (form driver) dan **Dashboard Admin** (butuh PIN) |
 | `apps-script.gs` | Backend: simpan data, baca data, update tindak lanjut |
 
 ## Setup (sekali saja)
@@ -16,10 +15,10 @@ Data masuk ke Google Sheet, foto ke Google Drive. Hosting gratis lewat GitHub Pa
 3. Pilih fungsi **doPost** → **Run** → izinkan akses (Review permissions → Advanced → Go to project → Allow).
    Error `postData` setelah itu normal; yang penting izin Drive & Sheets sudah diberikan.
 4. **Deploy → New deployment → Web app**: Execute as **Me**, Who has access **Anyone** → Deploy. Salin URL `/exec`.
-5. Tempel URL itu ke `SCRIPT_URL` di **`index.html`** dan **`dashboard.html`**.
+5. Tempel URL itu ke `SCRIPT_URL` di **`index.html`** (sudah terpasang jika Anda memakai file dari percakapan ini).
 6. Upload folder ini ke repo GitHub (Public) → **Settings → Pages** → Branch `main`, folder `/root` → Save.
    - Form driver: `https://<username>.github.io/<repo>/`
-   - Dashboard: `https://<username>.github.io/<repo>/dashboard.html`
+   - Dashboard admin: menu **Dashboard Admin** di halaman yang sama, atau langsung `https://<username>.github.io/<repo>/#dashboard`
 
 > Setiap kali `apps-script.gs` diubah: **Deploy → Manage deployments → pencil → New version → Deploy**.
 > Buka form lewat link `https://` di Chrome (bukan membuka file dari WhatsApp), agar kamera berfungsi.
